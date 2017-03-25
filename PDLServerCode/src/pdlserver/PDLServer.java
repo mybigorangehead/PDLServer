@@ -69,7 +69,7 @@ public class PDLServer {
         BufferedReader streamReader = new BufferedReader(new InputStreamReader(inputFromSocket));
         System.out.println("a;sldkfja;sldkfja;sldkfj");
         String[] code = streamReader.readLine().split(" ");
-        
+        System.out.println(code[0]);
         if (code[0].equals ("210")){
             
             createCustomGame(client);
@@ -87,7 +87,7 @@ public class PDLServer {
         String newCode = _CODE + codeCounter;
         customMasterClients.put(newCode, client);
         //streamWriter.write("200 SUCCESS");
-        streamWriter.write(newCode);
+        streamWriter.println(newCode);
         streamWriter.flush();
         streamWriter.close();
     }
