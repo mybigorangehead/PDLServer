@@ -60,23 +60,24 @@ public class PDLServer {
         
     }
     
-    //250 for quickplay, DO AFTER CUSTOM
-    //200 for custom play
-    //210 ROOMCODE for custom join
+    //200 for quickplay, DO AFTER CUSTOM
+    //210 for custom play
+    //240 ROOMCODE for custom join
     public void handleConnection(Socket client) throws IOException
     {
-        
         InputStream inputFromSocket = client.getInputStream();
         BufferedReader streamReader = new BufferedReader(new InputStreamReader(inputFromSocket));
-        
+        System.out.println("a;sldkfja;sldkfja;sldkfj");
         String[] code = streamReader.readLine().split(" ");
-        if (code[0].equals ("200")){
-           // Map<>
+        
+        if (code[0].equals ("210")){
+            
             createCustomGame(client);
         }
-        else if(code[0].equals("210")){
+        else if (code[0].equals("240")){
             joinCustomGame(client, code[1]);
         }
+        streamReader.close();
     }
     void createCustomGame(Socket client) throws IOException{
         OutputStream outputToSocket = client.getOutputStream();
@@ -85,30 +86,34 @@ public class PDLServer {
         codeCounter++;
         String newCode = _CODE + codeCounter;
         customMasterClients.put(newCode, client);
-        streamWriter.write("400 SUCCESS");
+        //streamWriter.write("200 SUCCESS");
+        streamWriter.write(newCode);
         streamWriter.flush();
+        streamWriter.close();
     }
-    void joinCustomGame(Socket client, String code){
+    void joinCustomGame(Socket client, String code) throws IOException{
         if (isValid(code)){
-            String clientPort = Integer.toString(client.getPort());
-            //String clientIP = client.getRemoteAddr();
-            //String clientInfo = clientPort + " " + clientIP;
+            OutputStream outputToSocket = client.getOutputStream();
+            PrintWriter streamWriter = new PrintWriter(outputToSocket);
             
-            //customMasterClients.put(clientPortInfo, client);
-            
+            Socket master = customMasterClients.get(code);
+            String clientPort = Integer.toString(master.getPort());
+            String clientIP = master.getInetAddress().getHostAddress();
 
-            //cient needs master clients ip, master clients port
-            //send those as string
-            //JOSH will have client expect one string
+            String clientInfo = "300 " + clientPort + " " + clientIP;
             
-            //master client needds same thing from clien 
-       }
+            streamWriter.write(clientInfo);
+            streamWriter.flush();
+            streamWriter.close();
+        }
         
     }
     
     boolean isValid(String code){
         return customMasterClients.containsKey(code);
     }
+    
+    
     
     
 }
