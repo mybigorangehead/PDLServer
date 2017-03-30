@@ -97,10 +97,10 @@ public class PDLServer {
             PrintWriter streamWriter = new PrintWriter(outputToSocket);
             
             Socket master = customMasterClients.get(code);
-            String clientPort = Integer.toString(master.getPort());
+         
             String clientIP = master.getInetAddress().getHostAddress();
 
-            String clientInfo = "300 " + clientPort + " " + clientIP;
+            String clientInfo = clientIP;
             
             streamWriter.write(clientInfo);
             streamWriter.flush();
