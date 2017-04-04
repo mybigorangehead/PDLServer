@@ -93,7 +93,7 @@ public class PDLServer {
         //streamWriter.write("200 SUCCESS");
         streamWriter.println(newCode);
         streamWriter.flush();
-        streamWriter.close();
+        //streamWriter.close();
         
     }
     void joinCustomGame(Socket client, String code) throws IOException{
@@ -125,17 +125,18 @@ public class PDLServer {
         BufferedReader masterReader;
         String myKey;
         public MasterThread (Socket c, String key) throws IOException{
+            
             master = c;
             masterReader = new BufferedReader(new InputStreamReader(master.getInputStream()));
             myKey = key;
-            this.start();
+            //this.start();
         }
         
         @Override
         public void run(){
             while(true){
                 try {
-                    
+                    System.out.println("waiting for" + myKey);
                     //on disconnect
                     if(masterReader.readLine() == null){
                         customMasterClients.remove(myKey);
