@@ -17,6 +17,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -24,7 +26,7 @@ import java.util.Map;
  */
 public class PDLServer {
     protected int listenPort = 3000;
-    protected Map<String, Socket> customMasterClients = new HashMap <>();
+    protected Map<String, MasterThread> customMasterClients = new HashMap <>();
     
     protected Map<String, Integer> gameStatus = new HashMap <>();
     
@@ -85,20 +87,26 @@ public class PDLServer {
         
         codeCounter++;
         String newCode = _CODE + codeCounter;
-        customMasterClients.put(newCode, client);
+        
+        customMasterClients.put(newCode, new MasterThread(client, newCode));
+        
         //streamWriter.write("200 SUCCESS");
         streamWriter.println(newCode);
         streamWriter.flush();
         streamWriter.close();
+        
     }
     void joinCustomGame(Socket client, String code) throws IOException{
         if (isValid(code)){
             OutputStream outputToSocket = client.getOutputStream();
             PrintWriter streamWriter = new PrintWriter(outputToSocket);
-            
-            Socket master = customMasterClients.get(code);
+
+            MasterThread master = customMasterClients.get(code);
+            String clientPort = Integer.toString(master.getPort());
+            String clientIP = master.getIp();
+           // Socket master = customMasterClients.get(code);
          
-            String clientIP = master.getInetAddress().getHostAddress();
+        //    String clientIP = master.getInetAddress().getHostAddress();
 
             String clientInfo = clientIP;
             
@@ -112,8 +120,44 @@ public class PDLServer {
     boolean isValid(String code){
         return customMasterClients.containsKey(code);
     }
-    
-    
-    
-    
+    public class MasterThread extends Thread{
+        Socket master;
+        BufferedReader masterReader;
+        String myKey;
+        public MasterThread (Socket c, String key) throws IOException{
+            master = c;
+            masterReader = new BufferedReader(new InputStreamReader(master.getInputStream()));
+            myKey = key;
+            this.start();
+        }
+        
+        @Override
+        public void run(){
+            while(true){
+                try {
+                    
+                    //on disconnect
+                    if(masterReader.readLine() == null){
+                        customMasterClients.remove(myKey);
+          
+                        //remove  this master from map
+                        //end this thread
+                        
+                    }else if(masterReader.readLine().equals ("INGAME")){
+                        gameStatus.put(myKey, 1);
+                    }else if(masterReader.readLine().equals("OUTGAME")){
+                        gameStatus.put(myKey, 0);
+                    }
+                } catch (IOException ex) {
+                    Logger.getLogger(PDLServer.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+        public int getPort(){
+            return master.getPort();
+        }
+        public String getIp(){
+            return master.getInetAddress().getHostAddress();
+        }
+    }   
 }
