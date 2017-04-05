@@ -89,6 +89,7 @@ public class PDLServer {
         String newCode = _CODE + codeCounter;
         
         customMasterClients.put(newCode, new MasterThread(client, newCode));
+   
         
         //streamWriter.write("200 SUCCESS");
         //streamWriter.println(newCode);
@@ -97,7 +98,9 @@ public class PDLServer {
         
     }
     void joinCustomGame(Socket client, String code) throws IOException{
+        System.out.println(isValid(code));
         if (isValid(code)){
+            
             OutputStream outputToSocket = client.getOutputStream();
             PrintWriter streamWriter = new PrintWriter(outputToSocket);
 
@@ -142,16 +145,14 @@ public class PDLServer {
             while(true){
                 try {
                     // System.out.println("waiting for" + myKey);
-                    //on disconnect
-                    if(masterReader.readLine() == null){
-                        customMasterClients.remove(myKey);
-          
-                        //remove  this master from map
-                        //end this thread
+                    //CHECK DISCONNECT HERE SOMEHOW
+                    String command = masterReader.readLine();
+                    if(command == null){
                         
-                    }else if(masterReader.readLine().equals ("INGAME")){
+                    }
+                    else if(command.equals ("INGAME")){
                         gameStatus.put(myKey, 1);
-                    }else if(masterReader.readLine().equals("OUTGAME")){
+                    }else if(command.equals("OUTGAME")){
                         gameStatus.put(myKey, 0);
                     }
                 } catch (IOException ex) {
