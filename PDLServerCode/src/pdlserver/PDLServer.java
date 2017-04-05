@@ -69,7 +69,7 @@ public class PDLServer {
     {
         InputStream inputFromSocket = client.getInputStream();
         BufferedReader streamReader = new BufferedReader(new InputStreamReader(inputFromSocket));
-        System.out.println("a;sldkfja;sldkfja;sldkfj");
+        // System.out.println("a;sldkfja;sldkfja;sldkfj");
         String[] code = streamReader.readLine().split(" ");
         System.out.println(code[0]);
         if (code[0].equals ("210")){
@@ -79,11 +79,11 @@ public class PDLServer {
         else if (code[0].equals("240")){
             joinCustomGame(client, code[1]);
         }
-        streamReader.close();
+        //streamReader.close();
     }
     void createCustomGame(Socket client) throws IOException{
-        OutputStream outputToSocket = client.getOutputStream();
-        PrintWriter streamWriter = new PrintWriter(outputToSocket);
+        //OutputStream outputToSocket = client.getOutputStream();
+        //PrintWriter streamWriter = new PrintWriter(outputToSocket);
         
         codeCounter++;
         String newCode = _CODE + codeCounter;
@@ -91,8 +91,8 @@ public class PDLServer {
         customMasterClients.put(newCode, new MasterThread(client, newCode));
         
         //streamWriter.write("200 SUCCESS");
-        streamWriter.println(newCode);
-        streamWriter.flush();
+        //streamWriter.println(newCode);
+        //streamWriter.flush();
         //streamWriter.close();
         
     }
@@ -123,20 +123,25 @@ public class PDLServer {
     public class MasterThread extends Thread{
         Socket master;
         BufferedReader masterReader;
+        OutputStream outputToSocket;
+        PrintWriter streamWriter;
         String myKey;
         public MasterThread (Socket c, String key) throws IOException{
-            
+            outputToSocket = c.getOutputStream();
+            streamWriter = new PrintWriter(outputToSocket);
             master = c;
             masterReader = new BufferedReader(new InputStreamReader(master.getInputStream()));
             myKey = key;
-            //this.start();
+            streamWriter.println(key);
+            streamWriter.flush();
+            this.start();
         }
         
         @Override
         public void run(){
             while(true){
                 try {
-                    System.out.println("waiting for" + myKey);
+                    // System.out.println("waiting for" + myKey);
                     //on disconnect
                     if(masterReader.readLine() == null){
                         customMasterClients.remove(myKey);
