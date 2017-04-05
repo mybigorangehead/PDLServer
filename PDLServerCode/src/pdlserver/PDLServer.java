@@ -69,7 +69,7 @@ public class PDLServer {
     {
         InputStream inputFromSocket = client.getInputStream();
         BufferedReader streamReader = new BufferedReader(new InputStreamReader(inputFromSocket));
-        System.out.println("a;sldkfja;sldkfja;sldkfj");
+        // System.out.println("a;sldkfja;sldkfja;sldkfj");
         String[] code = streamReader.readLine().split(" ");
         System.out.println(code[0]);
         if (code[0].equals ("210")){
@@ -79,25 +79,28 @@ public class PDLServer {
         else if (code[0].equals("240")){
             joinCustomGame(client, code[1]);
         }
-        streamReader.close();
+        //streamReader.close();
     }
     void createCustomGame(Socket client) throws IOException{
-        OutputStream outputToSocket = client.getOutputStream();
-        PrintWriter streamWriter = new PrintWriter(outputToSocket);
+        //OutputStream outputToSocket = client.getOutputStream();
+        //PrintWriter streamWriter = new PrintWriter(outputToSocket);
         
         codeCounter++;
         String newCode = _CODE + codeCounter;
         
         customMasterClients.put(newCode, new MasterThread(client, newCode));
+   
         
         //streamWriter.write("200 SUCCESS");
-        streamWriter.println(newCode);
-        streamWriter.flush();
-        streamWriter.close();
+        //streamWriter.println(newCode);
+        //streamWriter.flush();
+        //streamWriter.close();
         
     }
     void joinCustomGame(Socket client, String code) throws IOException{
+        System.out.println(isValid(code));
         if (isValid(code)){
+            
             OutputStream outputToSocket = client.getOutputStream();
             PrintWriter streamWriter = new PrintWriter(outputToSocket);
 
@@ -123,11 +126,17 @@ public class PDLServer {
     public class MasterThread extends Thread{
         Socket master;
         BufferedReader masterReader;
+        OutputStream outputToSocket;
+        PrintWriter streamWriter;
         String myKey;
         public MasterThread (Socket c, String key) throws IOException{
+            outputToSocket = c.getOutputStream();
+            streamWriter = new PrintWriter(outputToSocket);
             master = c;
             masterReader = new BufferedReader(new InputStreamReader(master.getInputStream()));
             myKey = key;
+            streamWriter.println(key);
+            streamWriter.flush();
             this.start();
         }
         
@@ -135,17 +144,15 @@ public class PDLServer {
         public void run(){
             while(true){
                 try {
-                    
-                    //on disconnect
-                    if(masterReader.readLine() == null){
-                        customMasterClients.remove(myKey);
-          
-                        //remove  this master from map
-                        //end this thread
+                    // System.out.println("waiting for" + myKey);
+                    //CHECK DISCONNECT HERE SOMEHOW
+                    String command = masterReader.readLine();
+                    if(command == null){
                         
-                    }else if(masterReader.readLine().equals ("INGAME")){
+                    }
+                    else if(command.equals ("INGAME")){
                         gameStatus.put(myKey, 1);
-                    }else if(masterReader.readLine().equals("OUTGAME")){
+                    }else if(command.equals("OUTGAME")){
                         gameStatus.put(myKey, 0);
                     }
                 } catch (IOException ex) {
