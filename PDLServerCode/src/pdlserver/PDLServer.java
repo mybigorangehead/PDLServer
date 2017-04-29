@@ -1,4 +1,4 @@
-/*
+      /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
@@ -89,8 +89,7 @@ public class PDLServer {
         String newCode = _CODE + codeCounter;
         
         customMasterClients.put(newCode, new MasterThread(client, newCode));
-   
-        
+        gameStatus.put(newCode, 0);        
         //streamWriter.write("200 SUCCESS");
         //streamWriter.println(newCode);
         //streamWriter.flush();
@@ -99,23 +98,45 @@ public class PDLServer {
     }
     void joinCustomGame(Socket client, String code) throws IOException{
         System.out.println(isValid(code));
+        OutputStream outputToSocket = client.getOutputStream();
+        PrintWriter streamWriter = new PrintWriter(outputToSocket);
         if (isValid(code)){
             
-            OutputStream outputToSocket = client.getOutputStream();
-            PrintWriter streamWriter = new PrintWriter(outputToSocket);
+           if(gameStatus.get(code) == 0){
+                MasterThread master = customMasterClients.get(code);
+                String clientPort = Integer.toString(master.getPort());
+                String clientIP = master.getIp();
+               // Socket master = customMasterClients.get(code);
 
-            MasterThread master = customMasterClients.get(code);
-            String clientPort = Integer.toString(master.getPort());
-            String clientIP = master.getIp();
-           // Socket master = customMasterClients.get(code);
-         
-        //    String clientIP = master.getInetAddress().getHostAddress();
+            //    String clientIP = master.getInetAddress().getHostAddress();
 
-            String clientInfo = clientIP;
-            
-            streamWriter.write(clientInfo);
+                String clientInfo = clientIP;
+                streamWriter.println(clientInfo);
+                streamWriter.flush();
+                streamWriter.close();
+           }else{
+            streamWriter.println("FAILURE");
+            if(isValid(code)){            
+                if(gameStatus.get(code)==1){
+                    streamWriter.println("Could not join game, the game is full.");
+                }
+            }
+            else{
+                streamWriter.println("Room does not exist.");
+            }
             streamWriter.flush();
-            streamWriter.close();
+        }
+        }else{
+            streamWriter.println("FAILURE");
+            if(isValid(code)){            
+                if(gameStatus.get(code)==1){
+                    streamWriter.println("Could not join game, the game is full.");
+                }
+            }
+            else{
+                streamWriter.println("Room does not exist.");
+            }
+            streamWriter.flush();
         }
         
     }
@@ -147,16 +168,16 @@ public class PDLServer {
                     // System.out.println("waiting for" + myKey);
                     //CHECK DISCONNECT HERE SOMEHOW
                     String command = masterReader.readLine();
-                    if(command == null){
-                        
-                    }
-                    else if(command.equals ("INGAME")){
+                    if(command.equals ("DENY")){
                         gameStatus.put(myKey, 1);
-                    }else if(command.equals("OUTGAME")){
+                    }else if(command.equals("ACCEPT")){
                         gameStatus.put(myKey, 0);
                     }
                 } catch (IOException ex) {
-                    Logger.getLogger(PDLServer.class.getName()).log(Level.SEVERE, null, ex);
+                    //master client closed his thing
+                    customMasterClients.remove(myKey);
+                    gameStatus.remove(myKey);
+                    this.stop();
                 }
             }
         }
