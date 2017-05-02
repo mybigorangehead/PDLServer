@@ -38,7 +38,6 @@ public class PDLServer {
       //  customMasterClients = new HashMap <String, Socket>();
         PDLServer server = new PDLServer();
         server.acceptConnections();
-    
     }
     
     
@@ -105,7 +104,7 @@ public class PDLServer {
             PrintWriter streamWriter = new PrintWriter(outputToSocket);
 
             MasterThread master = customMasterClients.get(code);
-            String clientPort = Integer.toString(master.getPort());
+            //String clientPort = Integer.toString(master.getPort());
             String clientIP = master.getIp();
            // Socket master = customMasterClients.get(code);
          
@@ -117,7 +116,7 @@ public class PDLServer {
             streamWriter.flush();
             streamWriter.close();
         }
-        
+         
     }
     
     boolean isValid(String code){
