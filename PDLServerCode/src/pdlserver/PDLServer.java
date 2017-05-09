@@ -28,109 +28,107 @@ import java.util.logging.Logger;
 public class PDLServer {
     protected int listenPort = 3000;
     protected Map<String, MasterThread> customMasterClients = new HashMap <>();
+    // game status show if the game is available
     protected Map<String, Integer> gameStatus = new HashMap <>();
-    //public or private?
+    // game type is either public or private
     protected Map<String, Integer> gameType = new HashMap<>();
-    //ALLOWS 9 MAX
+
+    // generate 4-digigt room code (only 9 rooms aare available now)
     String _CODE = "000";
     int codeCounter = 0;
     public static void main(String[] args) 
     {
-      //  customMasterClients = new HashMap <String, Socket>();
         PDLServer server = new PDLServer();
         server.acceptConnections();
     }
     
-    
+    // accept connections
     public void acceptConnections() 
     {
         try {
-           ServerSocket server = new ServerSocket(listenPort); //BindException if it cannot listen on this port
+           ServerSocket server = new ServerSocket(listenPort); 
            Socket incomingConnection = null;
            
+           // always accept connections
            while (true) {
                 incomingConnection = server.accept();
                 System.out.println("Port "+incomingConnection.getPort());
                 handleConnection(incomingConnection);
-                //incomingConnection.close();
             }
+        // BindException if it cannot listen on this port
         } catch (BindException e) {
                 System.out.println("Unable to bind to port " + listenPort);
         } catch (IOException e) {
                 System.out.println("Unable to instantiate a ServerSocket on port: " + listenPort);
         }
-        
     }
     
-    //200 for quickplay, DO AFTER CUSTOM
-    //210 for custom play
-    //240 ROOMCODE for custom join
+    // handle connection
     public void handleConnection(Socket client) throws IOException
     {
         InputStream inputFromSocket = client.getInputStream();
         BufferedReader streamReader = new BufferedReader(new InputStreamReader(inputFromSocket));
-        // System.out.println("a;sldkfja;sldkfja;sldkfj");
+        
+        // check connection request type
         String[] code = streamReader.readLine().split(" ");
         System.out.println(code[0]);
-
+        
+        // if request is create, call createCustomGame
         if (code[0].equals ("CREATE")){
             createCustomGame(client, code[1]);
-        }
+        } // if request is join, call joinCustomGame
         else if (code[0].equals("JOIN")){
             joinCustomGame(client, code[1]);
-        }
+        }// if request is create, call createCustomGame
         else if(code[0].equals("QUICK")){
             joinRandomGame(client);
-        }
-        //streamReader.close();
+        }    
     }
+    
     void joinRandomGame(Socket client) throws IOException{
         OutputStream outputToSocket = client.getOutputStream();
         PrintWriter streamWriter = new PrintWriter(outputToSocket);
        
         for (Map.Entry pair : gameType.entrySet()) {
             String key = (String)pair.getKey();
-            //if game is public
+            
+            // if game type is public
             if(gameType.get(key) == 0){
-                //if game is not full or in game
+                // if game is not full or in game
                 if(gameStatus.get(key) == 0){
                     joinCustomGame(client, key);
                     return;
                 }
             }
         }
-         //couldnt find an available game, so create a public one
+        // if couldnt find an available game, create a public one
         streamWriter.println("NEW");
         streamWriter.flush();
         createCustomGame(client, "0");
-            
     }
+    
     void createCustomGame(Socket client, String type) throws IOException{
-        //OutputStream outputToSocket = client.getOutputStream();
-        //PrintWriter streamWriter = new PrintWriter(outputToSocket);
-        
+        // generate room code
         codeCounter++;
         String newCode = _CODE + codeCounter;
         
         customMasterClients.put(newCode, new MasterThread(client, newCode));
         gameStatus.put(newCode, 0);     
         gameType.put(newCode, Integer.parseInt(type));
-        //streamWriter.write("200 SUCCESS");
-        //streamWriter.println(newCode);
-        //streamWriter.flush();
-        //streamWriter.close();
         
     }
+    
     void joinCustomGame(Socket client, String code) throws IOException{
         System.out.println(isValid(code));
         OutputStream outputToSocket = client.getOutputStream();
         PrintWriter streamWriter = new PrintWriter(outputToSocket);
         if (isValid(code)){
-            
+           // if game is available
            if(gameStatus.get(code) == 0){
                 MasterThread master = customMasterClients.get(code);
                 String clientPort = Integer.toString(master.getPort());
                 String clientIP = master.getIp();
+<<<<<<< HEAD
                // Socket master = customMasterClients.get(code);
        //     MasterThread master = customMasterClients.get(code);
             //String clientPort = Integer.toString(master.getPort());
@@ -141,6 +139,8 @@ public class PDLServer {
 
             //    String clientIP = master.getInetAddress().getHostAddress();
 
+=======
+>>>>>>> c30781e548ebb4d43a420d2ff490bc3c7a74638a
 
                 String clientInfo = clientIP;
                 streamWriter.println(clientInfo);
@@ -148,6 +148,8 @@ public class PDLServer {
                 streamWriter.close();
            }else{
             streamWriter.println("FAILURE");
+            
+            // if the game is not available
             if(isValid(code)){            
                 if(gameStatus.get(code)==1){
                     streamWriter.println("Could not join game, the game is full.");
@@ -170,12 +172,13 @@ public class PDLServer {
             }
             streamWriter.flush();
         }
-         
     }
     
+    // check if the code is valid
     boolean isValid(String code){
         return customMasterClients.containsKey(code);
     }
+    // allow multiple users
     public class MasterThread extends Thread{
         Socket master;
         BufferedReader masterReader;
@@ -197,8 +200,6 @@ public class PDLServer {
         public void run(){
             while(true){
                 try {
-                    // System.out.println("waiting for" + myKey);
-                    //CHECK DISCONNECT HERE SOMEHOW
                     String command = masterReader.readLine();
                     if(command.equals ("DENY")){
                         gameStatus.put(myKey, 1);
@@ -206,7 +207,7 @@ public class PDLServer {
                         gameStatus.put(myKey, 0);
                     }
                 } catch (IOException ex) {
-                    //master client closed his thing
+                    // if master client closed her page
                     customMasterClients.remove(myKey);
                     gameStatus.remove(myKey);
                     gameType.remove(myKey);
