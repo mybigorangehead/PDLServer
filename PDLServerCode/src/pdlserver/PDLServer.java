@@ -132,17 +132,15 @@ public class PDLServer {
                 String clientPort = Integer.toString(master.getPort());
                 String clientIP = master.getIp();
                // Socket master = customMasterClients.get(code);
-
-<<<<<<< HEAD
-            MasterThread master = customMasterClients.get(code);
+       //     MasterThread master = customMasterClients.get(code);
             //String clientPort = Integer.toString(master.getPort());
-            String clientIP = master.getIp();
+         //   String clientIP = master.getIp();
            // Socket master = customMasterClients.get(code);
          
         //    String clientIP = master.getInetAddress().getHostAddress();
-=======
+
             //    String clientIP = master.getInetAddress().getHostAddress();
->>>>>>> 1f022af90bc6a411e2da5b314f8874b8aaa00713
+
 
                 String clientInfo = clientIP;
                 streamWriter.println(clientInfo);
