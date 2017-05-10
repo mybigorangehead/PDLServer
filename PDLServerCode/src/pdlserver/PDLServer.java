@@ -12,14 +12,11 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.BindException;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 
 /**
  *
@@ -84,7 +81,7 @@ public class PDLServer {
             joinRandomGame(client);
         }    
     }
-    
+    // used for quick play joins game if is one
     void joinRandomGame(Socket client) throws IOException{
         OutputStream outputToSocket = client.getOutputStream();
         PrintWriter streamWriter = new PrintWriter(outputToSocket);
@@ -106,7 +103,7 @@ public class PDLServer {
         streamWriter.flush();
         createCustomGame(client, "0");
     }
-    
+    // create custom game if requested
     void createCustomGame(Socket client, String type) throws IOException{
         // generate room code
         codeCounter++;
@@ -118,6 +115,7 @@ public class PDLServer {
         
     }
     
+    //join custom game if requested
     void joinCustomGame(Socket client, String code) throws IOException{
         System.out.println(isValid(code));
         OutputStream outputToSocket = client.getOutputStream();
@@ -128,19 +126,7 @@ public class PDLServer {
                 MasterThread master = customMasterClients.get(code);
                 String clientPort = Integer.toString(master.getPort());
                 String clientIP = master.getIp();
-<<<<<<< HEAD
-               // Socket master = customMasterClients.get(code);
-       //     MasterThread master = customMasterClients.get(code);
-            //String clientPort = Integer.toString(master.getPort());
-         //   String clientIP = master.getIp();
-           // Socket master = customMasterClients.get(code);
-         
-        //    String clientIP = master.getInetAddress().getHostAddress();
 
-            //    String clientIP = master.getInetAddress().getHostAddress();
-
-=======
->>>>>>> c30781e548ebb4d43a420d2ff490bc3c7a74638a
 
                 String clientInfo = clientIP;
                 streamWriter.println(clientInfo);
@@ -178,7 +164,7 @@ public class PDLServer {
     boolean isValid(String code){
         return customMasterClients.containsKey(code);
     }
-    // allow multiple users
+    // allow multiple games
     public class MasterThread extends Thread{
         Socket master;
         BufferedReader masterReader;
@@ -196,6 +182,7 @@ public class PDLServer {
             this.start();
         }
         
+        // listens from master clients
         @Override
         public void run(){
             while(true){
